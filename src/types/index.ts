@@ -18,11 +18,11 @@ export interface Makanan {
   updated_at: string;
 }
 
-export interface LoginResponse {
-  user: {
-    id: number;
-    name: string;
-    email: string;
-  };
-  token: string;
-}
+// export interface LoginResponse {
+//   user: {
+//     id: number;
+//     name: string;
+//     email: string;
+//   };
+//   token: string;
+// }

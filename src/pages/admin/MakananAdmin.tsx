@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { getMakanans, createMakanan, updateMakanan, deleteMakanan } from '../../services/makananService';
-import { getImageUrl } from '../../services/api';
+import { getImageUrl } from '../../services/supabase';
 import type { Makanan } from '../../types';
 
 export default function MakananAdmin() {
@@ -10,6 +10,7 @@ export default function MakananAdmin() {
   const [deskripsi, setDeskripsi] = useState('');
   const [foto, setFoto] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingFoto, setEditingFoto] = useState<string | null>(null);
 
   const loadData = () => {
     getMakanans().then(setMakanans);
@@ -25,35 +26,36 @@ export default function MakananAdmin() {
     setDeskripsi('');
     setFoto(null);
     setEditingId(null);
+    setEditingFoto(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('nama', nama);
-    formData.append('lokasi', lokasi);
-    formData.append('deskripsi', deskripsi);
-    if (foto) formData.append('foto', foto);
-
-    if (editingId) {
-      await updateMakanan(editingId, formData);
-    } else {
-      await createMakanan(formData);
+    try {
+      if (editingId) {
+        await updateMakanan(editingId, nama, lokasi, deskripsi, foto, editingFoto);
+      } else {
+        await createMakanan(nama, lokasi, deskripsi, foto);
+      }
+      resetForm();
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menyimpan data');
     }
-    resetForm();
-    loadData();
   };
 
   const handleEdit = (makanan: Makanan) => {
     setEditingId(makanan.id);
+    setEditingFoto(makanan.foto);
     setNama(makanan.nama);
     setLokasi(makanan.lokasi || '');
     setDeskripsi(makanan.deskripsi || '');
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (makanan: Makanan) => {
     if (confirm('Hapus makanan ini?')) {
-      await deleteMakanan(id);
+      await deleteMakanan(makanan.id, makanan.foto);
       loadData();
     }
   };
@@ -112,7 +114,7 @@ export default function MakananAdmin() {
               <p className="text-neutral-400 text-sm mb-3">{makanan.deskripsi}</p>
               <div className="flex gap-2">
                 <button onClick={() => handleEdit(makanan)} className="text-blue-400 text-sm">Edit</button>
-                <button onClick={() => handleDelete(makanan.id)} className="text-red-400 text-sm">Hapus</button>
+                <button onClick={() => handleDelete(makanan)} className="text-red-400 text-sm">Hapus</button>
               </div>
             </div>
           </div>

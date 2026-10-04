@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { getMakanans } from '../services/makananService';
-import { getImageUrl } from '../services/api';
+import { getImageUrl } from '../services/supabase';
 import type { Makanan } from '../types';
 
 interface FoodPhoto {

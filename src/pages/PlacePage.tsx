@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { getTempats } from '../services/tempatService';
-import { getImageUrl } from '../services/api';
+import { getImageUrl } from '../services/supabase';
 import type { Tempat } from '../types';
 
 interface PlacePhoto {

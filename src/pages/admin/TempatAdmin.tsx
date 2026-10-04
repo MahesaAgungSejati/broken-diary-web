@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { getTempats, createTempat, updateTempat, deleteTempat } from '../../services/tempatService';
-import { getImageUrl } from '../../services/api';
+import { getImageUrl } from '../../services/supabase';
 import type { Tempat } from '../../types';
 
 export default function TempatAdmin() {
@@ -10,6 +10,7 @@ export default function TempatAdmin() {
   const [deskripsi, setDeskripsi] = useState('');
   const [foto, setFoto] = useState<File | null>(null);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingFoto, setEditingFoto] = useState<string | null>(null);
 
   const loadData = () => {
     getTempats().then(setTempats);
@@ -25,35 +26,36 @@ export default function TempatAdmin() {
     setDeskripsi('');
     setFoto(null);
     setEditingId(null);
+    setEditingFoto(null);
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    const formData = new FormData();
-    formData.append('nama', nama);
-    formData.append('lokasi', lokasi);
-    formData.append('deskripsi', deskripsi);
-    if (foto) formData.append('foto', foto);
-
-    if (editingId) {
-      await updateTempat(editingId, formData);
-    } else {
-      await createTempat(formData);
+    try {
+      if (editingId) {
+        await updateTempat(editingId, nama, lokasi, deskripsi, foto, editingFoto);
+      } else {
+        await createTempat(nama, lokasi, deskripsi, foto);
+      }
+      resetForm();
+      loadData();
+    } catch (err) {
+      console.error(err);
+      alert('Gagal menyimpan data');
     }
-    resetForm();
-    loadData();
   };
 
   const handleEdit = (tempat: Tempat) => {
     setEditingId(tempat.id);
+    setEditingFoto(tempat.foto);
     setNama(tempat.nama);
     setLokasi(tempat.lokasi || '');
     setDeskripsi(tempat.deskripsi || '');
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (tempat: Tempat) => {
     if (confirm('Hapus tempat ini?')) {
-      await deleteTempat(id);
+      await deleteTempat(tempat.id, tempat.foto);
       loadData();
     }
   };
@@ -112,7 +114,7 @@ export default function TempatAdmin() {
               <p className="text-neutral-400 text-sm mb-3">{tempat.deskripsi}</p>
               <div className="flex gap-2">
                 <button onClick={() => handleEdit(tempat)} className="text-blue-400 text-sm">Edit</button>
-                <button onClick={() => handleDelete(tempat.id)} className="text-red-400 text-sm">Hapus</button>
+                <button onClick={() => handleDelete(tempat)} className="text-red-400 text-sm">Hapus</button>
               </div>
             </div>
           </div>
